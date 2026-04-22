@@ -1239,13 +1239,6 @@
     container.replaceChildren(list);
   }
 
-  function isImageAttachment(obj) {
-    const mime = String(obj.file_type || obj.mime_type || "").toLowerCase();
-    if (mime.startsWith("image/")) return true;
-    const name = String(obj.name || obj.file_name || "").toLowerCase();
-    return /\.(jpe?g|png|gif|webp|bmp|heic|heif)$/i.test(name);
-  }
-
   function renderFlowBody(type, obj, dealId) {
     const body = $("div", { class: "pipewhat-flow-summary" });
     if (!obj) return body;
@@ -1295,52 +1288,21 @@
 
     if (type === "file") {
       const name = obj.name || obj.file_name || "archivo";
-      const fileId = obj.id || obj.file_id || null;
       const dealIdFromFile = obj.deal_id || dealId;
-
-      if (isImageAttachment(obj) && fileId) {
-        // Imagen: cargar inline con URL firmada del service worker.
-        const wrap = $("div", { class: "pipewhat-flow-imgwrap" });
-        const caption = $("div", { class: "pipewhat-flow-filename", text: name });
-        const img = $("img", {
-          class: "pipewhat-flow-image",
-          alt: name,
-          loading: "lazy"
-        });
-        img.style.cssText = "max-width:100%; max-height:220px; border-radius:6px; display:block; margin-top:4px; cursor:pointer; background:#f1f5f9;";
-        wrap.append(caption, img);
-
-        (async () => {
-          try {
-            const resp = await chrome.runtime.sendMessage({ action: "getFileDownloadUrl", fileId });
-            if (resp && resp.success && resp.data) {
-              img.src = resp.data;
-              img.addEventListener("click", () => window.open(resp.data, "_blank", "noopener"));
-            } else {
-              img.replaceWith($("div", { class: "pipewhat-flow-filesize", text: "(no se pudo cargar la imagen)" }));
-            }
-          } catch {
-            img.replaceWith($("div", { class: "pipewhat-flow-filesize", text: "(no se pudo cargar la imagen)" }));
-          }
-        })();
-
-        body.appendChild(wrap);
+      // Cualquier archivo: al click abrir el deal en Pipedrive. Evita lío de
+      // auth / descargas y le da al usuario el contexto completo del archivo.
+      const href = dealIdFromFile ? pipedriveDealUrl(dealIdFromFile) : null;
+      if (href) {
+        body.appendChild($("a", {
+          class: "pipewhat-flow-file",
+          href,
+          target: "_blank",
+          rel: "noopener",
+          title: "Abrir el deal en Pipedrive para ver/descargar",
+          text: name + " ↗"
+        }));
       } else {
-        // No-imagen: al click, abrir el deal en Pipedrive (evita todo lío de
-        // auth / descargas y le da al usuario el contexto completo del archivo).
-        const href = dealIdFromFile ? pipedriveDealUrl(dealIdFromFile) : null;
-        if (href) {
-          body.appendChild($("a", {
-            class: "pipewhat-flow-file",
-            href,
-            target: "_blank",
-            rel: "noopener",
-            title: "Abrir el deal en Pipedrive para descargar",
-            text: name + " ↗"
-          }));
-        } else {
-          body.appendChild(document.createTextNode(name));
-        }
+        body.appendChild(document.createTextNode(name));
       }
 
       if (obj.file_size) {

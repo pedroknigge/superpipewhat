@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.3 — 2026-04-22
+
+- **Adjuntos del timeline**: las imágenes ya no se intentan cargar inline (el approach con URL S3 firmada no era confiable). Ahora, como el resto de archivos, el click abre el deal directamente en Pipedrive.
+
 ## 1.1.2 — 2026-04-22
 
 - **Fix preview de leads en el kanban**: la detección de entidad ahora soporta IDs UUID (leads), lee también query string (`?selectedLead=...`), hash y múltiples tipos de drawer/dialog/modal. Además, un MutationObserver global recuerda el último entity visto en una preview durante 60 s, como red de seguridad cuando el drawer cambia de DOM entre la apertura y el envío.
