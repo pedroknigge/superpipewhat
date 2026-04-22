@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "SuperPipeWhat — Pipedrive ↔ Whaticket",
   "description": "Un puente entre Pipedrive y Whaticket. En Whaticket: panel con deals/personas, timeline, creación de notas/actividades. En Pipedrive: envío de WhatsApp vía Whaticket con plantillas, variables y adjuntos.",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "permissions": ["storage", "scripting"],
   "optional_host_permissions": ["https://*/*"],
   "host_permissions": [
