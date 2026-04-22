@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="icons/logo.png" alt="SuperPipeWhat" width="420">
+</p>
+
 # SuperPipeWhat
 
 **Un puente bidireccional entre [Pipedrive](https://www.pipedrive.com/) y [Whaticket](https://whaticket.com/) en una sola extensión de Chrome.** Dos integraciones complementarias que cubren el agujero que deja la falta de integración oficial entre ambas plataformas:
