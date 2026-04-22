@@ -95,28 +95,123 @@
     else stopInlineWatcher();
   }
 
-  // Detect the entity whose context the user is currently viewing. Handles
-  // both full pages (/deal/123) and the preview drawer (URL stays on the
-  // pipeline/list view, but [data-test="detailsDrawer"] contains a link back
-  // to the entity's own page).
-  function detectCurrentEntity() {
-    const m = location.pathname.match(/\/(deal|person|leads|organization)\/([\w-]+)/);
-    if (m) return { kind: m[1], id: m[2] };
+  // Detect the entity whose context the user is currently viewing. Cubre:
+  //   1) Página directa (/deal/123, /leads/<uuid>, etc.)
+  //   2) Query/hash (?selectedLead=<uuid>, #/lead/<uuid>, etc.)
+  //   3) Drawer de preview — distintos data-test según entity.
+  //   4) Último drawer visto recientemente (fallback memoizado).
+  //
+  // IDs de leads son UUID (string), el resto son numéricos.
+  const ID_PATTERN = '([0-9]+|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})';
+  const ENTITY_LINK_RE = new RegExp(`/(deal|person|leads|organization)/${ID_PATTERN}`, 'i');
 
-    const drawer = document.querySelector('[data-test="detailsDrawer"]');
-    if (drawer) {
+  let _lastPreviewEntity = null; // { kind, id, at: Date }
+
+  function detectCurrentEntity() {
+    // 1) URL path
+    const m = location.pathname.match(ENTITY_LINK_RE);
+    if (m) return { kind: m[1].toLowerCase(), id: m[2] };
+
+    // 2) Query string (?selectedLead=uuid, ?leadId=uuid, ?dealId=123, etc.)
+    const qs = location.search;
+    const qsLead = qs.match(/[?&](?:selectedLead|leadId|lead)=([0-9a-f-]{8,})/i);
+    if (qsLead) return { kind: 'leads', id: qsLead[1] };
+    const qsDeal = qs.match(/[?&](?:selectedDeal|dealId|deal)=(\d+)/i);
+    if (qsDeal) return { kind: 'deal', id: qsDeal[1] };
+    const qsPerson = qs.match(/[?&](?:selectedPerson|personId|person)=(\d+)/i);
+    if (qsPerson) return { kind: 'person', id: qsPerson[1] };
+    const qsOrg = qs.match(/[?&](?:selectedOrganization|organizationId|org)=(\d+)/i);
+    if (qsOrg) return { kind: 'organization', id: qsOrg[1] };
+
+    // 3) Hash (#/lead/uuid, etc.)
+    const hashMatch = location.hash.match(ENTITY_LINK_RE);
+    if (hashMatch) return { kind: hashMatch[1].toLowerCase(), id: hashMatch[2] };
+
+    // 4) Drawer(s) visibles. Probamos varios data-test comunes y cualquier
+    //    elemento con role=dialog.
+    const drawerSelectors = [
+      '[data-test="detailsDrawer"]',
+      '[data-test*="Drawer"]',
+      '[data-test*="drawer"]',
+      '[data-test*="Preview"]',
+      '[data-test*="preview"]',
+      '[role="dialog"]',
+      '[aria-modal="true"]'
+    ];
+    const drawers = document.querySelectorAll(drawerSelectors.join(', '));
+    for (const drawer of drawers) {
+      // Cualquier link interno a una entity cuenta
       const link = drawer.querySelector(
         'a[href*="/deal/"], a[href*="/person/"], a[href*="/leads/"], a[href*="/organization/"]'
       );
       if (link) {
-        const dm = link.getAttribute('href').match(/\/(deal|person|leads|organization)\/([\w-]+)/);
-        if (dm) return { kind: dm[1], id: dm[2] };
+        const dm = link.getAttribute('href').match(ENTITY_LINK_RE);
+        if (dm) return { kind: dm[1].toLowerCase(), id: dm[2] };
       }
-      const inner = drawer.querySelector('[data-id]');
-      const rawId = drawer.getAttribute('data-id') || (inner && inner.getAttribute('data-id'));
-      if (rawId && /^\d+$/.test(rawId)) {
-        const pk = location.pathname.match(/\/(deal|person|lead|organization)s?\b/);
-        if (pk) return { kind: pk[1] === 'lead' ? 'leads' : pk[1], id: rawId };
+      // data-id en el drawer o en un descendiente (UUID o numérico)
+      const rawId = drawer.getAttribute('data-id')
+        || (drawer.querySelector('[data-id]') && drawer.querySelector('[data-id]').getAttribute('data-id'))
+        || drawer.getAttribute('data-test-id')
+        || (drawer.querySelector('[data-test-id]') && drawer.querySelector('[data-test-id]').getAttribute('data-test-id'));
+      if (rawId && /^([0-9]+|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i.test(rawId)) {
+        const pk = location.pathname.match(/\/(deal|person|lead|organization)s?\b/i) || [null, ''];
+        let kind = pk[1] ? pk[1].toLowerCase() : null;
+        if (kind === 'lead') kind = 'leads';
+        // Si el ID parece UUID y no pudimos inferir kind de la URL → asumimos leads
+        if (!kind && /-/.test(rawId)) kind = 'leads';
+        // Si es numérico y no pudimos inferir, hacemos best-guess deal
+        if (!kind) kind = 'deal';
+        return { kind, id: rawId };
+      }
+    }
+
+    // 5) Último entity detectado en un drawer reciente (≤ 60 s).
+    if (_lastPreviewEntity && Date.now() - _lastPreviewEntity.at < 60 * 1000) {
+      return { kind: _lastPreviewEntity.kind, id: _lastPreviewEntity.id };
+    }
+
+    return null;
+  }
+
+  // Observer global: cada vez que aparece un drawer/modal con un link a una
+  // entity, cacheamos esa entity. Sirve de fallback cuando, en el momento del
+  // envío, el DOM del drawer cambió y ya no tiene el link a la vista.
+  function installPreviewEntityObserver() {
+    const seen = new WeakSet();
+    const scan = () => {
+      const e = detectCurrentEntityFromDOMOnly();
+      if (e) _lastPreviewEntity = { ...e, at: Date.now() };
+    };
+    const observer = new MutationObserver(() => {
+      // throttle
+      if (seen.has(scan)) return;
+      seen.add(scan);
+      setTimeout(() => { seen.delete(scan); scan(); }, 300);
+    });
+    observer.observe(document.documentElement, { childList: true, subtree: true });
+    scan();
+  }
+
+  // Versión del detector que sólo usa DOM (para el observer, sin caer en el
+  // fallback de la propia caché).
+  function detectCurrentEntityFromDOMOnly() {
+    const drawerSelectors = [
+      '[data-test="detailsDrawer"]',
+      '[data-test*="Drawer"]',
+      '[data-test*="drawer"]',
+      '[data-test*="Preview"]',
+      '[data-test*="preview"]',
+      '[role="dialog"]',
+      '[aria-modal="true"]'
+    ];
+    const drawers = document.querySelectorAll(drawerSelectors.join(', '));
+    for (const drawer of drawers) {
+      const link = drawer.querySelector(
+        'a[href*="/deal/"], a[href*="/person/"], a[href*="/leads/"], a[href*="/organization/"]'
+      );
+      if (link) {
+        const dm = link.getAttribute('href').match(ENTITY_LINK_RE);
+        if (dm) return { kind: dm[1].toLowerCase(), id: dm[2] };
       }
     }
     return null;
@@ -1455,6 +1550,7 @@
     setTimeout(() => {
       applyUiMode();
       watchSelection();
+      installPreviewEntityObserver();
     }, 800);
 
     // Re-inject on navigation (Pipedrive is SPA)

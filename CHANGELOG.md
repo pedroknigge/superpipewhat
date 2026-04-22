@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.2 — 2026-04-22
+
+- **Fix preview de leads en el kanban**: la detección de entidad ahora soporta IDs UUID (leads), lee también query string (`?selectedLead=...`), hash y múltiples tipos de drawer/dialog/modal. Además, un MutationObserver global recuerda el último entity visto en una preview durante 60 s, como red de seguridad cuando el drawer cambia de DOM entre la apertura y el envío.
+
 ## 1.1.1 — 2026-04-22
 
 - **Adjuntos del timeline**: imágenes (`jpg/png/gif/webp/bmp/heic`) se muestran ahora **inline** en el panel, cargadas con URL S3 firmada. Click en la imagen la abre a tamaño completo. Para cualquier otro tipo de archivo (PDF, docs, audio, etc.), el click ahora **abre el deal directamente en Pipedrive** en una tab nueva — más simple y evita cualquier problema de permisos/descarga.
