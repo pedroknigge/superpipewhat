@@ -1,0 +1,867 @@
+/* PipeWhat — panel lateral inyectado en Whaticket
+   Paleta PipeWhat: teal (#1FA68D) + púrpura oscuro (#2B2460) + slate. */
+
+#pipewhat-panel {
+  --wa-green: #1FA68D;
+  --wa-green-dark: #2B2460;
+  --slate-50: #f8fafc;
+  --slate-100: #f1f5f9;
+  --slate-200: #e2e8f0;
+  --slate-300: #cbd5e1;
+  --slate-400: #94a3b8;
+  --slate-500: #64748b;
+  --slate-600: #475569;
+  --slate-700: #334155;
+  --slate-800: #1e293b;
+  --slate-900: #0f172a;
+
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  width: 440px;
+  max-width: 100vw;
+  background: var(--slate-50);
+  /* Container query: permite adaptar el contenido cuando el panel es angosto */
+  container-type: inline-size;
+  container-name: pw-panel;
+  border-left: 1px solid var(--slate-200);
+  box-shadow: -10px 0 30px rgba(15, 23, 42, 0.10);
+  z-index: 2147483646;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+  font-size: 14px;
+  color: var(--slate-800);
+  transition: transform 0.22s cubic-bezier(.25,.8,.25,1);
+  display: flex;
+  flex-direction: column;
+}
+
+#pipewhat-panel.pipewhat-collapsed {
+  transform: translateX(calc(100% - 46px));
+}
+
+/* Resize handle — permite al usuario agrandar/achicar el sidebar */
+#pipewhat-panel .pipewhat-resize {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 6px;
+  height: 100%;
+  cursor: ew-resize;
+  background: transparent;
+  z-index: 1;
+}
+#pipewhat-panel .pipewhat-resize:hover {
+  background: rgba(37, 211, 102, 0.25);
+}
+
+/* Pestaña/handle */
+#pipewhat-panel .pipewhat-toggle {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translate(-100%, -50%);
+  width: 42px;
+  height: 84px;
+  border: none;
+  border-radius: 12px 0 0 12px;
+  background: linear-gradient(135deg, var(--wa-green) 0%, var(--wa-green-dark) 100%);
+  color: white;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  box-shadow: -4px 0 12px rgba(43, 36, 96, 0.30);
+  transition: transform 0.12s, box-shadow 0.15s;
+  font-family: inherit;
+}
+#pipewhat-panel .pipewhat-toggle:hover {
+  transform: translate(-100%, -50%) scale(1.04);
+  box-shadow: -6px 0 18px rgba(43, 36, 96, 0.45);
+}
+#pipewhat-panel .pipewhat-toggle:active { transform: translate(-100%, -50%) scale(0.98); }
+
+/* Header del panel */
+#pipewhat-panel .pipewhat-panel-header {
+  background: linear-gradient(135deg, var(--wa-green) 0%, var(--wa-green-dark) 100%);
+  color: white;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+#pipewhat-panel .pipewhat-panel-header h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+#pipewhat-panel .pipewhat-panel-header .pipewhat-sub {
+  font-size: 11px;
+  opacity: 0.85;
+  margin-top: 2px;
+}
+#pipewhat-panel .pipewhat-panel-header button.pipewhat-icon-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+  font-family: inherit;
+}
+#pipewhat-panel .pipewhat-panel-header button.pipewhat-icon-btn:hover { background: rgba(255, 255, 255, 0.35); }
+
+#pipewhat-panel .pipewhat-header-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+#pipewhat-panel .pipewhat-panel-header button.pipewhat-spinning {
+  animation: pipewhat-spin 0.7s linear;
+}
+@keyframes pipewhat-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Body scrollable */
+#pipewhat-panel .pipewhat-body {
+  padding: 16px;
+  overflow-y: auto;
+  flex: 1;
+  box-sizing: border-box;
+  animation: pipewhat-fadeIn 0.2s ease-out;
+}
+@keyframes pipewhat-fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Card del contacto */
+#pipewhat-panel .pipewhat-card {
+  background: white;
+  border: 1px solid var(--slate-200);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+}
+#pipewhat-panel .pipewhat-card-title {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--slate-500);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+#pipewhat-panel .pipewhat-name {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--slate-900);
+  letter-spacing: -0.01em;
+}
+#pipewhat-panel .pipewhat-org {
+  font-size: 13px;
+  color: var(--slate-600);
+  margin-top: 2px;
+}
+#pipewhat-panel .pipewhat-owner {
+  font-size: 12px;
+  color: var(--slate-500);
+  margin-top: 4px;
+}
+#pipewhat-panel .pipewhat-owner-name {
+  color: var(--slate-800);
+  font-weight: 700;
+}
+
+/* Copyable: hover suave + feedback al copiar */
+#pipewhat-panel .pipewhat-copyable {
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 1px 4px;
+  margin-left: -4px;
+  transition: background 0.12s, color 0.12s;
+}
+#pipewhat-panel .pipewhat-copyable:hover {
+  background: var(--slate-100);
+}
+#pipewhat-panel .pipewhat-copyable.pipewhat-copied {
+  background: #dcfce7;
+  color: #166534;
+  font-weight: 600;
+}
+
+/* Contact lines (☎ / ✉) */
+#pipewhat-panel .pipewhat-contact { margin-top: 10px; }
+#pipewhat-panel .pipewhat-line {
+  padding: 4px 0;
+  font-size: 13px;
+  color: var(--slate-700);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Deals header */
+#pipewhat-panel .pipewhat-deals-title {
+  margin: 4px 0 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--slate-500);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+#pipewhat-panel .pipewhat-deals-count {
+  background: var(--slate-100);
+  color: var(--slate-700);
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* Deal card */
+#pipewhat-panel .pipewhat-deal {
+  background: white;
+  border: 1px solid var(--slate-200);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  transition: border-color 0.15s;
+}
+#pipewhat-panel .pipewhat-deal:hover { border-color: var(--slate-300); }
+
+#pipewhat-panel .pipewhat-deal-title {
+  font-weight: 600;
+  color: var(--slate-900);
+  margin-bottom: 6px;
+  font-size: 14px;
+  line-height: 1.35;
+}
+#pipewhat-panel .pipewhat-deal-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+  align-items: center;
+}
+#pipewhat-panel .pipewhat-pill {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--slate-100);
+  color: var(--slate-700);
+  border: 1px solid var(--slate-200);
+  letter-spacing: 0.01em;
+}
+#pipewhat-panel .pipewhat-status-open {
+  background: #dbeafe; color: #1e40af; border-color: #bfdbfe;
+}
+#pipewhat-panel .pipewhat-status-won {
+  background: #dcfce7; color: #166534; border-color: #86efac;
+}
+#pipewhat-panel .pipewhat-status-lost {
+  background: #fee2e2; color: #991b1b; border-color: #fca5a5;
+}
+#pipewhat-panel .pipewhat-money {
+  margin-left: auto;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--slate-900);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* Botones */
+#pipewhat-panel .pipewhat-btn,
+#pipewhat-panel .pipewhat-deal-toggle {
+  background: transparent;
+  color: var(--slate-700);
+  border: 1px solid var(--slate-300);
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 12.5px;
+  font-weight: 600;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+#pipewhat-panel .pipewhat-btn:hover,
+#pipewhat-panel .pipewhat-deal-toggle:hover {
+  background: var(--slate-100);
+  border-color: var(--slate-400);
+}
+#pipewhat-panel .pipewhat-btn-primary {
+  background: var(--wa-green);
+  color: white;
+  border-color: var(--wa-green);
+}
+#pipewhat-panel .pipewhat-btn-primary:hover {
+  background: var(--wa-green-dark);
+  border-color: var(--wa-green-dark);
+}
+
+/* Links */
+#pipewhat-panel .pipewhat-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--wa-green-dark);
+  text-decoration: none;
+  font-size: 12.5px;
+  font-weight: 600;
+  margin-top: 6px;
+}
+#pipewhat-panel .pipewhat-link:hover { text-decoration: underline; }
+
+#pipewhat-panel .pipewhat-hidden { display: none !important; }
+
+/* Timeline */
+#pipewhat-panel .pipewhat-flow {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--slate-200);
+}
+#pipewhat-panel .pipewhat-timeline {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+#pipewhat-panel .pipewhat-flow-item {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--slate-100);
+  font-size: 12.5px;
+}
+#pipewhat-panel .pipewhat-flow-item:last-child { border-bottom: none; }
+
+#pipewhat-panel .pipewhat-flow-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+#pipewhat-panel .pipewhat-flow-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+#pipewhat-panel .pipewhat-flow-type {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: var(--wa-green-dark);
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+#pipewhat-panel .pipewhat-flow-date {
+  color: var(--slate-400);
+  font-size: 11px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  margin-left: auto;
+}
+
+#pipewhat-panel .pipewhat-flow-summary {
+  color: var(--slate-800);
+  word-break: break-word;
+  line-height: 1.45;
+}
+#pipewhat-panel .pipewhat-flow-note {
+  margin-top: 4px;
+  padding: 6px 9px;
+  background: var(--slate-50);
+  border-left: 3px solid var(--slate-200);
+  border-radius: 4px;
+  color: var(--slate-700);
+  font-size: 12px;
+  white-space: pre-wrap;
+  line-height: 1.45;
+}
+#pipewhat-panel .pipewhat-flow-more {
+  margin-top: 4px;
+  background: none;
+  border: none;
+  color: var(--wa-green-dark);
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 2px 0;
+  font-family: inherit;
+}
+#pipewhat-panel .pipewhat-flow-more:hover { text-decoration: underline; }
+
+#pipewhat-panel .pipewhat-flow-file {
+  color: var(--wa-green-dark);
+  font-weight: 600;
+  text-decoration: none;
+  word-break: break-all;
+}
+#pipewhat-panel .pipewhat-flow-file:hover { text-decoration: underline; }
+#pipewhat-panel .pipewhat-flow-filesize {
+  color: var(--slate-400);
+  font-size: 11px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+#pipewhat-panel .pipewhat-mini-chip {
+  display: inline-block;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--slate-100);
+  color: var(--slate-700);
+  border: 1px solid var(--slate-200);
+  vertical-align: middle;
+}
+#pipewhat-panel .pipewhat-chip-done {
+  background: #dcfce7;
+  color: #166534;
+  border-color: #86efac;
+  margin-left: 6px;
+}
+
+/* Footer del body */
+#pipewhat-panel .pipewhat-footer {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--slate-200);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+/* States */
+#pipewhat-panel .pipewhat-state {
+  color: var(--slate-500);
+  padding: 10px 12px;
+  font-size: 13px;
+  background: white;
+  border: 1px dashed var(--slate-200);
+  border-radius: 10px;
+  text-align: center;
+}
+#pipewhat-panel .pipewhat-error {
+  color: #991b1b;
+  padding: 10px 14px;
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* Próxima actividad pendiente (banner arriba del deal card) */
+#pipewhat-panel .pipewhat-next-activity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  margin-bottom: 8px;
+  background: #fef9c3;
+  border: 1px solid #fde68a;
+  border-radius: 8px;
+}
+#pipewhat-panel .pipewhat-next-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+#pipewhat-panel .pipewhat-next-icon { font-size: 16px; line-height: 1; }
+#pipewhat-panel .pipewhat-next-subject {
+  font-weight: 600;
+  color: #78350f;
+  font-size: 12.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#pipewhat-panel .pipewhat-next-date {
+  font-size: 11px;
+  color: #92400e;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+#pipewhat-panel .pipewhat-btn-sm {
+  padding: 4px 10px;
+  font-size: 11.5px;
+  flex-shrink: 0;
+}
+
+/* Acciones en la card de contacto */
+#pipewhat-panel .pipewhat-contact-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+/* Deal action buttons row */
+#pipewhat-panel .pipewhat-deal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+/* Forms inline (nota / actividad) */
+#pipewhat-panel .pipewhat-action-form {
+  margin-top: 10px;
+  padding: 12px;
+  background: var(--slate-50);
+  border: 1px solid var(--slate-200);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: pipewhat-fadeIn 0.18s ease-out;
+}
+#pipewhat-panel .pipewhat-textarea,
+#pipewhat-panel .pipewhat-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--slate-300);
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: inherit;
+  background: white;
+  color: var(--slate-800);
+  box-sizing: border-box;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+#pipewhat-panel .pipewhat-textarea { resize: vertical; min-height: 60px; line-height: 1.4; }
+#pipewhat-panel .pipewhat-textarea:focus,
+#pipewhat-panel .pipewhat-input:focus {
+  outline: none;
+  border-color: var(--wa-green);
+  box-shadow: 0 0 0 3px rgba(31, 166, 141, 0.18);
+}
+#pipewhat-panel .pipewhat-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 6px;
+}
+#pipewhat-panel .pipewhat-form-row .pipewhat-input {
+  font-size: 12px;
+  padding: 7px 8px;
+}
+#pipewhat-panel .pipewhat-form-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+#pipewhat-panel .pipewhat-form-status {
+  font-size: 12px;
+  min-height: 16px;
+  color: var(--slate-500);
+  font-weight: 500;
+}
+#pipewhat-panel .pipewhat-form-status.pipewhat-form-ok { color: #166534; }
+#pipewhat-panel .pipewhat-form-status.pipewhat-form-error { color: #991b1b; }
+
+/* Labels inline del form */
+#pipewhat-panel .pipewhat-form-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--slate-500);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-top: 2px;
+}
+
+/* Grid 2 columnas para valor + moneda */
+#pipewhat-panel .pipewhat-form-row-2 {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 6px;
+}
+
+/* Botones won / lost */
+#pipewhat-panel .pipewhat-btn-won {
+  background: #16a34a;
+  color: white;
+  border-color: #16a34a;
+}
+#pipewhat-panel .pipewhat-btn-won:hover {
+  background: #15803d;
+  border-color: #15803d;
+}
+#pipewhat-panel .pipewhat-btn-lost {
+  background: #dc2626;
+  color: white;
+  border-color: #dc2626;
+}
+#pipewhat-panel .pipewhat-btn-lost:hover {
+  background: #b91c1c;
+  border-color: #b91c1c;
+}
+
+/* Link "Enviar" al lado del email */
+#pipewhat-panel .pipewhat-email-link {
+  margin-left: 8px;
+  color: var(--wa-green-dark);
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #dcfce7;
+  border: 1px solid #86efac;
+}
+#pipewhat-panel .pipewhat-email-link:hover {
+  background: var(--wa-green);
+  color: white;
+  border-color: var(--wa-green);
+}
+
+/* Presets de actividad (chips) */
+#pipewhat-panel .pipewhat-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 2px;
+}
+#pipewhat-panel .pipewhat-chip {
+  background: white;
+  border: 1px solid var(--slate-300);
+  color: var(--slate-700);
+  padding: 4px 9px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.12s;
+}
+#pipewhat-panel .pipewhat-chip:hover {
+  background: var(--wa-green);
+  color: white;
+  border-color: var(--wa-green);
+}
+
+/* Dialog de confirmación (in-DOM, no usa confirm() nativo) */
+.pipewhat-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2147483647;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  animation: pipewhat-fadeIn 0.15s ease-out;
+}
+.pipewhat-dialog-content {
+  background: white;
+  border-radius: 14px;
+  padding: 22px 24px;
+  width: 380px;
+  max-width: calc(100vw - 40px);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.30);
+  color: #1e293b;
+}
+.pipewhat-dialog-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 6px;
+}
+.pipewhat-dialog-msg {
+  font-size: 13.5px;
+  color: #475569;
+  line-height: 1.45;
+  margin-bottom: 14px;
+}
+.pipewhat-dialog-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+}
+.pipewhat-dialog-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 9px 11px;
+  font-size: 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  outline: none;
+  margin-bottom: 14px;
+  font-family: inherit;
+  color: #1e293b;
+  background: white;
+}
+.pipewhat-dialog-input:focus {
+  border-color: #1FA68D;
+  box-shadow: 0 0 0 3px rgba(31, 166, 141, 0.18);
+}
+.pipewhat-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.pipewhat-dialog-actions .pipewhat-btn {
+  background: transparent;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 8px 14px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+.pipewhat-dialog-actions .pipewhat-btn:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+.pipewhat-dialog-actions .pipewhat-btn-primary {
+  background: #1FA68D;
+  color: white;
+  border-color: #1FA68D;
+}
+.pipewhat-dialog-actions .pipewhat-btn-primary:hover {
+  background: #17806b;
+  border-color: #17806b;
+}
+.pipewhat-dialog-actions .pipewhat-btn-lost {
+  background: #dc2626;
+  color: white;
+  border-color: #dc2626;
+}
+.pipewhat-dialog-actions .pipewhat-btn-lost:hover {
+  background: #b91c1c;
+  border-color: #b91c1c;
+}
+
+/* ================================================================
+   MODO COMPACTO (container query)
+   Se activa automáticamente cuando el panel tiene ≤ 380px de ancho.
+   Reduce padding, font-size y apretá los controles para que sea usable
+   en monitores chicos (1366x768) o cuando el user achica el sidebar.
+   ================================================================ */
+@container pw-panel (max-width: 380px) {
+  #pipewhat-panel {
+    font-size: 13px;
+  }
+  #pipewhat-panel .pipewhat-panel-header {
+    padding: 12px 14px;
+  }
+  #pipewhat-panel .pipewhat-panel-header h2 { font-size: 14px; }
+  #pipewhat-panel .pipewhat-panel-header .pipewhat-sub { font-size: 10px; }
+
+  #pipewhat-panel .pipewhat-body { padding: 10px; }
+
+  #pipewhat-panel .pipewhat-card,
+  #pipewhat-panel .pipewhat-deal {
+    padding: 10px 12px;
+    border-radius: 10px;
+  }
+
+  #pipewhat-panel .pipewhat-name { font-size: 15px; }
+  #pipewhat-panel .pipewhat-org { font-size: 12px; }
+  #pipewhat-panel .pipewhat-owner { font-size: 11px; }
+
+  #pipewhat-panel .pipewhat-line { font-size: 12px; padding: 2px 0; }
+
+  #pipewhat-panel .pipewhat-deal-title { font-size: 13px; margin-bottom: 4px; }
+  #pipewhat-panel .pipewhat-deal-meta { gap: 4px; margin-bottom: 6px; }
+  #pipewhat-panel .pipewhat-pill {
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+  #pipewhat-panel .pipewhat-money { font-size: 12px; }
+
+  #pipewhat-panel .pipewhat-deal-toggle,
+  #pipewhat-panel .pipewhat-btn {
+    font-size: 11.5px;
+    padding: 4px 8px;
+    border-radius: 6px;
+  }
+  #pipewhat-panel .pipewhat-deal-actions { gap: 4px; }
+
+  #pipewhat-panel .pipewhat-next-activity {
+    padding: 6px 8px;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  #pipewhat-panel .pipewhat-next-subject { font-size: 11.5px; }
+  #pipewhat-panel .pipewhat-next-date { font-size: 10px; }
+
+  /* Forms más apretados */
+  #pipewhat-panel .pipewhat-action-form {
+    padding: 10px;
+    gap: 6px;
+  }
+  #pipewhat-panel .pipewhat-textarea,
+  #pipewhat-panel .pipewhat-input {
+    padding: 6px 9px;
+    font-size: 12px;
+  }
+  #pipewhat-panel .pipewhat-form-row { grid-template-columns: 1fr 1fr; }
+  #pipewhat-panel .pipewhat-form-row > :nth-child(3) {
+    grid-column: 1 / -1;
+  }
+  #pipewhat-panel .pipewhat-chip {
+    font-size: 10.5px;
+    padding: 3px 7px;
+  }
+
+  /* Timeline compacto */
+  #pipewhat-panel .pipewhat-flow-item { padding: 6px 0; font-size: 11.5px; }
+  #pipewhat-panel .pipewhat-flow-summary { line-height: 1.35; }
+
+  /* Credit footer: más chico en modo compacto */
+  #pipewhat-panel .pipewhat-credit {
+    padding: 6px 12px 8px;
+    font-size: 10px;
+  }
+}
+
+/* Modo ultra-compacto: por si alguien lo achica a mínimo 300 */
+@container pw-panel (max-width: 320px) {
+  #pipewhat-panel .pipewhat-body { padding: 8px; }
+  #pipewhat-panel .pipewhat-deal { padding: 8px 10px; }
+  #pipewhat-panel .pipewhat-deal-title { font-size: 12.5px; }
+  #pipewhat-panel .pipewhat-money { margin-left: 0; width: 100%; margin-top: 2px; }
+  #pipewhat-panel .pipewhat-deal-toggle,
+  #pipewhat-panel .pipewhat-btn {
+    padding: 3px 6px;
+    font-size: 11px;
+  }
+  /* Stage pill: en ultra-compacto quitamos el '·' del pipeline para ahorrar */
+  #pipewhat-panel .pipewhat-contact-actions { flex-wrap: wrap; }
+}
+
+/* Credit footer */
+#pipewhat-panel .pipewhat-credit {
+  padding: 8px 16px 12px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--slate-400);
+  border-top: 1px solid var(--slate-200);
+  background: var(--slate-50);
+  flex-shrink: 0;
+}
+#pipewhat-panel .pipewhat-credit a {
+  color: var(--wa-green-dark);
+  text-decoration: none;
+  font-weight: 600;
+}
+#pipewhat-panel .pipewhat-credit a:hover { text-decoration: underline; }

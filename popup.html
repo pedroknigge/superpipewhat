@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SuperPipeWhat</title>
+  <style>
+    body { width: 340px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; background: #f8fafc; color: #1e293b; }
+    .header { background: linear-gradient(135deg, #1FA68D 0%, #2B2460 100%); color: white; padding: 14px 18px; display: flex; align-items: center; gap: 12px; }
+    .header-logo { width: 34px; height: 34px; border-radius: 8px; overflow: hidden; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.18); flex-shrink: 0; }
+    .header-logo img { width: 100%; height: 100%; display: block; object-fit: cover; }
+    .header h1 { margin: 0; font-size: 15px; font-weight: 700; line-height: 1.3; }
+    .header-sub { font-size: 11px; opacity: 0.85; margin-top: 1px; }
+    .content { padding: 14px 16px; }
+    .context-banner {
+      background: #dcfce7; color: #166534; border: 1px solid #86efac;
+      padding: 8px 10px; border-radius: 8px; font-size: 12px; margin-bottom: 10px; display: none;
+    }
+    .context-banner.neutral { background: #fef3c7; color: #92400e; border-color: #fde68a; }
+    .card { background: white; border-radius: 10px; padding: 12px 14px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .card h3 { margin: 0 0 8px 0; font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.04em; }
+    .status-row { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 13px; }
+    .dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+    .dot-ok { background: #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,0.18); }
+    .dot-warn { background: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,0.18); }
+    .dot-err { background: #ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,0.18); }
+    .dot-loading { background: #cbd5e1; animation: pulse 1s ease-in-out infinite; }
+    @keyframes pulse { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
+    .status-label { flex: 1; }
+    .status-value { color: #64748b; font-size: 12px; font-weight: 500; }
+    .status-value.good { color: #16a34a; font-weight: 600; }
+    .status-value.bad { color: #dc2626; font-weight: 600; }
+    .btn { display: block; width: 100%; background: #1FA68D; color: white; text-align: center; padding: 10px; border: none; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 13px; margin-top: 8px; cursor: pointer; box-sizing: border-box; font-family: inherit; }
+    .btn:hover { background: #2B2460; }
+    .btn-secondary { background: #64748b; }
+    .btn-secondary:hover { background: #475569; }
+    .btn-ghost { background: transparent; color: #1FA68D; border: 1px solid #1FA68D; }
+    .btn-ghost:hover { background: #dcfce7; }
+    .quick { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .quick .btn { margin-top: 0; }
+    .footer { text-align: center; padding: 10px; font-size: 11px; color: #94a3b8; border-top: 1px solid #e2e8f0; }
+    .credit { text-align: center; padding: 10px 12px 14px; font-size: 11px; color: #94a3b8; border-top: 1px solid #e2e8f0; background: #f8fafc; }
+    .credit a { color: #2B2460; text-decoration: none; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-logo"><img src="icons/icon64.png" alt="Logo"></div>
+    <div>
+      <h1>SuperPipeWhat</h1>
+      <div class="header-sub">Pipedrive ↔ Whaticket</div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="context-banner" id="ctxBanner"></div>
+
+    <div class="card">
+      <h3>Pipedrive (API)</h3>
+      <div class="status-row">
+        <span class="dot" id="dotPdToken"></span>
+        <span class="status-label">Token</span>
+        <span class="status-value" id="valPdToken">—</span>
+      </div>
+      <div class="status-row">
+        <span class="dot" id="dotPdCompany"></span>
+        <span class="status-label">Subdominio</span>
+        <span class="status-value" id="valPdCompany">—</span>
+      </div>
+      <div class="status-row">
+        <span class="dot" id="dotCountry"></span>
+        <span class="status-label">Código de país</span>
+        <span class="status-value" id="valCountry">—</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Whaticket (API)</h3>
+      <div class="status-row">
+        <span class="dot dot-loading" id="dotWaToken"></span>
+        <span class="status-label">Token</span>
+        <span class="status-value" id="valWaToken">—</span>
+      </div>
+      <div class="status-row">
+        <span class="dot dot-loading" id="dotConnections"></span>
+        <span class="status-label">Conexiones</span>
+        <span class="status-value" id="valConnections">—</span>
+      </div>
+      <div class="status-row">
+        <span class="dot dot-loading" id="dotDefault"></span>
+        <span class="status-label">Default</span>
+        <span class="status-value" id="valDefault">—</span>
+      </div>
+    </div>
+
+    <div class="quick">
+      <button class="btn btn-ghost" id="refreshBtn">↻ Refrescar</button>
+      <button class="btn btn-secondary" id="openOptions">⚙️ Opciones</button>
+    </div>
+  </div>
+
+  <div class="footer">
+    v1.0.0 · <code>Alt+Shift+P</code> Whaticket · <code>Alt+Shift+W</code> Pipedrive
+  </div>
+  <div class="credit">
+    by <a href="https://marketingfraccional.com" target="_blank">marketingfraccional.com</a> · Pedro Knigge
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

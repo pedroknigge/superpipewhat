@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Opciones · SuperPipeWhat</title>
+  <style>
+    :root {
+      --wa-green: #1FA68D;
+      --wa-green-dark: #2B2460;
+      --slate-50: #f8fafc;
+      --slate-100: #f1f5f9;
+      --slate-200: #e2e8f0;
+      --slate-300: #cbd5e1;
+      --slate-400: #94a3b8;
+      --slate-500: #64748b;
+      --slate-600: #475569;
+      --slate-700: #334155;
+      --slate-800: #1e293b;
+      --slate-900: #0f172a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+      margin: 0; padding: 0;
+      background: var(--slate-100);
+      color: var(--slate-800);
+      font-size: 14px; line-height: 1.5;
+    }
+    .app { max-width: 860px; margin: 0 auto; padding: 32px 24px 80px; }
+    .app-header { display: flex; align-items: center; gap: 14px; margin-bottom: 8px; }
+    .app-logo { width: 48px; height: 48px; border-radius: 12px; overflow: hidden; flex-shrink: 0; box-shadow: 0 6px 16px rgba(15,23,42,0.12); }
+    .app-logo img { width: 100%; height: 100%; display: block; object-fit: cover; }
+    .app-title h1 { margin: 0; font-size: 22px; font-weight: 700; color: var(--slate-900); letter-spacing: -0.01em; }
+    .app-title p { margin: 2px 0 0 0; color: var(--slate-500); font-size: 13px; }
+
+    .credit { text-align: center; margin-top: 12px; font-size: 12px; color: var(--slate-500); }
+    .credit a { color: var(--wa-green-dark); text-decoration: none; font-weight: 600; }
+    .credit a:hover { text-decoration: underline; }
+
+    .tabs { display: flex; gap: 4px; margin: 24px 0 20px; border-bottom: 1.5px solid var(--slate-200); flex-wrap: wrap; }
+    .tab { background: none; border: none; padding: 10px 16px; font-size: 14px; font-weight: 600; color: var(--slate-500); cursor: pointer; border-bottom: 2.5px solid transparent; margin-bottom: -1.5px; transition: all 0.15s; font-family: inherit; }
+    .tab:hover { color: var(--slate-800); }
+    .tab.active { color: var(--wa-green-dark); border-bottom-color: var(--wa-green); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; animation: fadeIn 0.2s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+    .card { background: white; border-radius: 12px; border: 1px solid var(--slate-200); margin-bottom: 16px; overflow: hidden; }
+    .card-header { padding: 16px 20px 4px; }
+    .card-header h2 { margin: 0; font-size: 15px; font-weight: 700; color: var(--slate-900); display: flex; align-items: center; gap: 8px; }
+    .card-header p { margin: 4px 0 0; font-size: 13px; color: var(--slate-500); }
+    .card-body { padding: 16px 20px 20px; }
+    .card-footer { padding: 12px 20px; background: var(--slate-50); border-top: 1px solid var(--slate-200); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+    .field { margin-bottom: 14px; }
+    .field:last-child { margin-bottom: 0; }
+    .field label { display: block; font-size: 13px; font-weight: 600; color: var(--slate-700); margin-bottom: 6px; }
+    .field .hint { font-size: 12px; color: var(--slate-500); margin-top: 6px; line-height: 1.45; }
+    .field .hint code { background: var(--slate-100); padding: 1px 5px; border-radius: 4px; font-size: 11.5px; color: var(--slate-700); }
+    input[type="text"], input[type="password"], input[type="number"], select, textarea {
+      width: 100%; padding: 9px 12px; border: 1px solid var(--slate-300); border-radius: 8px;
+      font-size: 14px; font-family: inherit; background: white; color: var(--slate-800);
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--wa-green); box-shadow: 0 0 0 3px rgba(31,166,141,0.18); }
+    textarea { resize: vertical; line-height: 1.5; }
+    .field-row { display: flex; gap: 8px; }
+    .field-row > input { flex: 1; }
+    .optional-tag { color: var(--slate-400); font-weight: 500; font-size: 12px; }
+
+    .btn { background: var(--wa-green); color: white; border: none; padding: 9px 18px; border-radius: 8px; font-weight: 600; font-size: 13.5px; cursor: pointer; transition: background 0.15s, transform 0.05s; font-family: inherit; }
+    .btn:hover { background: var(--wa-green-dark); }
+    .btn:active { transform: scale(0.98); }
+    .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+    .btn-secondary { background: var(--slate-500); }
+    .btn-secondary:hover { background: var(--slate-600); }
+    .btn-ghost { background: transparent; color: var(--slate-700); border: 1px solid var(--slate-300); }
+    .btn-ghost:hover { background: var(--slate-100); }
+    .btn-sm { padding: 5px 10px; font-size: 12px; }
+
+    .inline-status { font-size: 12.5px; font-weight: 600; opacity: 0; transition: opacity 0.2s; }
+    .inline-status.show { opacity: 1; }
+    .inline-status.success { color: #166534; }
+    .inline-status.error { color: #991b1b; }
+
+    .status { padding: 10px 14px; border-radius: 8px; font-size: 13px; margin: 12px 0 0; }
+    .success { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+    .error { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+
+    .connections-list { border: 1px solid var(--slate-200); border-radius: 8px; overflow: hidden; background: white; max-height: 260px; overflow-y: auto; }
+    .conn-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--slate-100); font-size: 13px; }
+    .conn-item:last-child { border-bottom: none; }
+    .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; vertical-align: middle; }
+    .connected { background: #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,0.18); }
+    .disconnected { background: #ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,0.18); }
+
+    .tpl-card { border: 1px solid var(--slate-200); border-radius: 10px; padding: 12px 14px; margin-bottom: 10px; background: white; transition: border-color 0.15s; }
+    .tpl-card:hover { border-color: var(--slate-300); }
+    .tpl-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .tpl-title { font-size: 14px; font-weight: 600; color: var(--slate-900); }
+    .tpl-body { font-size: 13px; color: var(--slate-600); white-space: pre-wrap; line-height: 1.5; }
+    .tpl-media { margin-top: 8px; font-size: 12px; color: #0284c7; word-break: break-all; background: #f0f9ff; padding: 6px 9px; border-radius: 6px; }
+    .tpl-actions { display: flex; gap: 6px; flex-shrink: 0; }
+    .tpl-form { border: 1.5px dashed var(--slate-300); border-radius: 10px; padding: 16px 18px; background: var(--slate-50); }
+    .tpl-form-title { font-size: 14px; font-weight: 700; color: var(--slate-900); margin-bottom: 12px; }
+
+    .hosts-list { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+    .host-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: var(--slate-50); border: 1px solid var(--slate-200); border-radius: 8px; font-size: 13px; }
+    .host-row code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--slate-800); background: none; padding: 0; }
+    .host-row button { background: transparent; border: 1px solid var(--slate-300); color: var(--slate-700); border-radius: 6px; padding: 3px 9px; font-size: 12px; cursor: pointer; font-family: inherit; }
+    .host-row button:hover { background: #fee2e2; border-color: #fca5a5; color: #991b1b; }
+
+    .help-item { padding: 12px 0; border-bottom: 1px solid var(--slate-100); }
+    .help-item:last-child { border-bottom: none; }
+    .help-item strong { color: var(--slate-900); display: block; margin-bottom: 2px; }
+    .help-item p { margin: 0; color: var(--slate-600); font-size: 13px; }
+    kbd { background: white; border: 1px solid var(--slate-300); border-bottom-width: 2px; border-radius: 5px; padding: 2px 7px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: var(--slate-700); }
+    .footer-note { text-align: center; margin-top: 32px; font-size: 12px; color: var(--slate-400); }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="app-header">
+      <div class="app-logo"><img src="icons/icon128.png" alt="Logo"></div>
+      <div class="app-title">
+        <h1>SuperPipeWhat</h1>
+        <p>Pipedrive ↔ Whaticket en una sola extensión. Configurá ambas integraciones.</p>
+      </div>
+    </header>
+
+    <nav class="tabs" role="tablist">
+      <button class="tab active" data-tab="pipedrive" role="tab">Pipedrive (en Whaticket)</button>
+      <button class="tab" data-tab="whaticket" role="tab">Whaticket (en Pipedrive)</button>
+      <button class="tab" data-tab="templates" role="tab">Plantillas</button>
+      <button class="tab" data-tab="help" role="tab">Ayuda</button>
+    </nav>
+
+    <!-- ======== Tab: Pipedrive (panel dentro de Whaticket) ======== -->
+    <section class="tab-panel active" data-panel="pipedrive">
+
+      <div class="card">
+        <div class="card-header">
+          <h2>🔗 Pipedrive API</h2>
+          <p>Token y subdominio de tu cuenta de Pipedrive. Se usa tanto para el panel dentro de Whaticket como para enriquecer datos al enviar mensajes desde Pipedrive.</p>
+        </div>
+        <div class="card-body">
+          <div class="field">
+            <label for="pipedriveCompany">Subdominio</label>
+            <input type="text" id="pipedriveCompany" placeholder="miempresa" autocomplete="off">
+            <div class="hint">Si tu URL es <code>miempresa.pipedrive.com</code>, poné <code>miempresa</code>.</div>
+          </div>
+          <div class="field">
+            <label for="pipedriveApiToken">Token de API</label>
+            <input type="password" id="pipedriveApiToken" placeholder="Pegá tu token aquí" autocomplete="off">
+            <div class="hint">Pipedrive → <em>Configuración → Preferencias personales → API</em>.</div>
+          </div>
+        </div>
+        <div class="card-footer">
+          <button class="btn" id="savePipedriveBtn" type="button">Guardar cambios</button>
+          <span class="inline-status" id="pipedriveStatus"></span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2>🌎 Código de país por defecto</h2>
+          <p>Se usa en las dos integraciones: para probar variantes del teléfono al buscar en Pipedrive y para normalizar números al enviar por Whaticket.</p>
+        </div>
+        <div class="card-body">
+          <div class="field">
+            <label for="defaultCountryCode">Prefijo</label>
+            <input type="text" id="defaultCountryCode" placeholder="Ej: 54" maxlength="4" style="max-width:140px;">
+            <div class="hint">Ej: <code>54</code> (AR), <code>55</code> (BR), <code>52</code> (MX). Dejar vacío para desactivar.</div>
+          </div>
+        </div>
+        <div class="card-footer">
+          <button class="btn" id="saveCountryBtn" type="button">Guardar cambios</button>
+          <span class="inline-status" id="countryStatus"></span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2>✉️ Smart Email BCC <span class="optional-tag">— opcional</span></h2>
+          <p>Si lo configurás, cada email enviado desde el panel en Whaticket queda automáticamente loggeado en el contacto de Pipedrive.</p>
+        </div>
+        <div class="card-body">
+          <div class="field">
+            <label for="smartBccEmail">Tu Smart BCC Email</label>
+            <input type="text" id="smartBccEmail" placeholder="usuario-xxxxxxxx@pipedrivemail.com" autocomplete="off">
+            <div class="hint">Pipedrive → <em>Preferencias personales → Email sync</em>. Copiá tu dirección BCC personal.</div>
+          </div>
+        </div>
+        <div class="card-footer">
+          <button class="btn" id="saveSmartBccBtn" type="button">Guardar cambios</button>
+          <span class="inline-status" id="smartBccStatus"></span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2>💬 Whaticket self-hosted <span class="optional-tag">— opcional</span></h2>
+          <p>Si tu Whaticket no corre en <code>*.whaticket.com</code>, agregá tu dominio. Chrome te va a pedir permiso explícito para que el panel funcione ahí.</p>
+        </div>
+        <div class="card-body">
+          <div class="field">
+            <label for="whaticketHost">Dominio</label>
+            <div class="field-row">
+              <input type="text" id="whaticketHost" placeholder="whaticket.miempresa.com" autocomplete="off">
+              <button class="btn" id="addHostBtn" type="button">Autorizar y agregar</button>
+            </div>
+            <div class="hint">Sólo el dominio (sin <code>https://</code>, sin path). Se autoriza sobre <code>https://TU_DOMINIO/*</code>.</div>
+          </div>
+          <div id="hostsList" class="hosts-list"></div>
+        </div>
+        <div class="card-footer">
+          <span class="inline-status" id="hostsStatus"></span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2>🧹 Cache</h2>
+          <p>Los lookups a Pipedrive se cachean 5 minutos. Vacialo si cambiaste datos en Pipedrive y querés verlos ya.</p>
+        </div>
+        <div class="card-footer" style="border-top: none; background: white;">
+          <button class="btn btn-ghost" id="clearCacheBtn" type="button">Vaciar cache</button>
+          <span class="inline-status" id="cacheStatus"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======== Tab: Whaticket (FAB dentro de Pipedrive) ======== -->
+    <section class="tab-panel" data-panel="whaticket">
+
+      <div class="card">
+        <div class="card-header">
+          <h2>🔑 Whaticket API</h2>
+          <p>Credenciales para enviar mensajes y listar conexiones de WhatsApp desde Pipedrive.</p>
+        </div>
+        <div class="card-body">
+          <div class="field">
+            <label for="token">Token de API (Bearer)</label>
+            <input type="password" id="token" placeholder="Pega tu token aquí">
+            <div class="hint">
+              Créalo en <a href="https://app.whaticket.com/tokens" target="_blank">app.whaticket.com/tokens</a>
+              con permisos <code>create:messages</code> y <code>read:whatsapps</code>.
+            </div>
+          </div>
+          <div class="field">
+            <label for="defaultConnection">Conexión por defecto (ID)</label>
+            <div class="field-row">
+              <input type="text" id="defaultConnection" placeholder="ID de la conexión, ej: 3b304bdb-...">
+              <button class="btn btn-ghost" id="loadConnectionsBtn" type="button">Cargar conexiones</button>
+            </div>
+            <div class="hint">Puedes elegir una de la lista que aparece abajo.</div>
+          </div>
+        </div>
+        <div class="card-footer">
+          <button class="btn" id="saveBtn" type="button">Guardar cambios</button>
+          <button class="btn btn-ghost" id="testBtn" type="button">Probar conexión</button>
+          <span class="inline-status" id="whatpipeStatus"></span>
+        </div>
+      </div>
+
+      <div id="status" class="status" style="display:none;"></div>
+
+      <div class="card" id="connectionsSection" style="display:none;">
+        <div class="card-header">
+          <h2>📶 Tus conexiones de WhatsApp</h2>
+          <p>Click en "Usar como defecto" para fijar una.</p>
+        </div>
+        <div class="card-body" style="padding:0;">
+          <div id="connectionsList" class="connections-list" style="border:none; border-radius:0;"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2>🏢 Tu empresa</h2>
+          <p>Nombre de tu empresa o marca para usar como remitente en plantillas.</p>
+        </div>
+        <div class="card-body">
+          <div class="field">
+            <label for="senderCompany">Nombre</label>
+            <input type="text" id="senderCompany" placeholder="Ej: Marketing Fraccional">
+            <div class="hint">Disponible como <code>{{mi_empresa}}</code> en las plantillas.</div>
+          </div>
+        </div>
+        <div class="card-footer">
+          <button class="btn" id="saveSenderCompanyBtn" type="button">Guardar cambios</button>
+          <span class="inline-status" id="senderCompanyStatus"></span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2>🎛️ Modo del botón</h2>
+          <p>Elegí cómo aparece la extensión dentro de Pipedrive.</p>
+        </div>
+        <div class="card-body">
+          <div class="field">
+            <label for="buttonMode">Modo</label>
+            <select id="buttonMode" style="max-width:320px;">
+              <option value="floating">Botón flotante (por defecto)</option>
+              <option value="inline">Icono al lado de cada teléfono</option>
+            </select>
+            <div class="hint">
+              <strong>Flotante</strong>: botón redondo abajo a la derecha.
+              <strong>Inline</strong>: iconito verde al lado de cada <code>tel:</code>. El atajo <kbd>Alt+Shift+W</kbd> sigue funcionando igual.
+            </div>
+          </div>
+        </div>
+        <div class="card-footer">
+          <button class="btn" id="saveButtonModeBtn" type="button">Guardar cambios</button>
+          <span class="inline-status" id="buttonModeStatus"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======== Tab: Plantillas ======== -->
+    <section class="tab-panel" data-panel="templates">
+      <div class="card">
+        <div class="card-header">
+          <h2>📝 Plantillas de mensaje</h2>
+          <p>
+            Reutiliza mensajes de recontacto. Variables disponibles:
+            <code>{{nombre}}</code>, <code>{{apellido}}</code>, <code>{{nombre_completo}}</code>,
+            <code>{{empresa}}</code>, <code>{{mi_empresa}}</code>, <code>{{email}}</code>, <code>{{deal}}</code>, <code>{{owner}}</code>.
+          </p>
+        </div>
+        <div class="card-body">
+          <div id="templatesList"></div>
+          <div class="tpl-form" id="tplFormBox">
+            <div class="tpl-form-title" id="tplFormTitle">Nueva plantilla</div>
+            <div class="field">
+              <label for="tplName">Nombre</label>
+              <input type="text" id="tplName" placeholder="Ej: Recontacto 7 días">
+            </div>
+            <div class="field">
+              <label for="tplBody">Mensaje</label>
+              <textarea id="tplBody" rows="4" placeholder="Hola {{nombre}}, te escribo desde {{mi_empresa}}..."></textarea>
+            </div>
+            <div class="field">
+              <label for="tplMedia">URL de adjunto <span class="optional-tag">— opcional</span></label>
+              <input type="text" id="tplMedia" placeholder="https://ejemplo.com/imagen.jpg">
+              <div class="hint">Se enviará como archivo adjunto junto al mensaje.</div>
+            </div>
+            <div style="display:flex; gap:8px; margin-top:4px;">
+              <button class="btn" id="addTplBtn" type="button">Agregar plantilla</button>
+              <button class="btn btn-ghost" id="cancelEditBtn" type="button" style="display:none;">Cancelar edición</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======== Tab: Ayuda ======== -->
+    <section class="tab-panel" data-panel="help">
+      <div class="card">
+        <div class="card-header"><h2>🧭 Cómo funciona</h2></div>
+        <div class="card-body">
+          <div class="help-item">
+            <strong>Dos integraciones, una extensión</strong>
+            <p>En Whaticket (<code>*.whaticket.com</code>) aparece un panel lateral con los datos de Pipedrive del contacto. En Pipedrive (<code>*.pipedrive.com</code>) aparece un botón / iconos para mandar WhatsApp vía Whaticket. Cada dominio carga su propio content script.</p>
+          </div>
+          <div class="help-item">
+            <strong>Panel en Whaticket</strong>
+            <p>Al abrir Whaticket aparece una pestaña <kbd>PD</kbd> en el borde derecho. Atajo <kbd>Alt+Shift+P</kbd> para colapsar/expandir.</p>
+          </div>
+          <div class="help-item">
+            <strong>Envío desde Pipedrive</strong>
+            <p>Atajo <kbd>Alt+Shift+W</kbd>. También hay un botón flotante 📱 abajo a la derecha. En vistas de lista, marcá varias filas para envío masivo.</p>
+          </div>
+          <div class="help-item">
+            <strong>Privacidad</strong>
+            <p>Los tokens se guardan sólo en <code>chrome.storage.local</code>. Todas las llamadas a las APIs pasan por el service worker — los content scripts nunca ven los tokens.</p>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h2>ℹ️ Acerca de</h2></div>
+        <div class="card-body">
+          <div class="help-item"><strong>Versión</strong><p>1.0.0 — Extensión Chrome · MV3</p></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="footer-note">Hecho para equipos comerciales y de atención</div>
+    <div class="credit">by <a href="https://marketingfraccional.com" target="_blank">marketingfraccional.com</a> · Pedro Knigge</div>
+  </div>
+
+  <script src="options.js"></script>
+</body>
+</html>

@@ -1,0 +1,57 @@
+{
+  "manifest_version": 3,
+  "name": "SuperPipeWhat — Pipedrive ↔ Whaticket",
+  "description": "Un puente entre Pipedrive y Whaticket. En Whaticket: panel con deals/personas, timeline, creación de notas/actividades. En Pipedrive: envío de WhatsApp vía Whaticket con plantillas, variables y adjuntos.",
+  "version": "1.0.0",
+  "permissions": ["storage", "scripting"],
+  "optional_host_permissions": ["https://*/*"],
+  "host_permissions": [
+    "https://*.pipedrive.com/*",
+    "https://*.whaticket.com/*",
+    "https://api.whaticket.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://*.whaticket.com/*"],
+      "js": ["content/whaticket.js"],
+      "css": ["content/whaticket.css"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://*.pipedrive.com/*"],
+      "js": ["content/pipedrive.js"],
+      "css": ["content/pipedrive.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "SuperPipeWhat",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "options_page": "options.html",
+  "commands": {
+    "toggle-panel": {
+      "suggested_key": { "default": "Alt+Shift+P", "mac": "Alt+Shift+P" },
+      "description": "Colapsar/expandir el panel de Pipedrive en Whaticket"
+    },
+    "open-send-modal": {
+      "suggested_key": { "default": "Alt+Shift+W" },
+      "description": "Abrir modal de envío de Whaticket en Pipedrive"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
