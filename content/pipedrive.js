@@ -127,7 +127,24 @@
     const hashMatch = location.hash.match(ENTITY_LINK_RE);
     if (hashMatch) return { kind: hashMatch[1].toLowerCase(), id: hashMatch[2] };
 
-    // 4) Drawer(s) visibles. Probamos varios data-test comunes y cualquier
+    // 4) "Ábrelo en una pestaña nueva" dentro de la preview. Pipedrive
+    //    renderiza <a data-test="nav-button" href="/deal/123">… o /leads/<uuid>…
+    //    dentro de los modales/drawers de preview. Es el indicador más
+    //    confiable porque no depende del data-test del contenedor.
+    const navButtons = document.querySelectorAll('a[data-test="nav-button"][href]');
+    for (const nb of navButtons) {
+      // Preferir los visibles (offsetParent != null filtra desplegables cerrados)
+      if (nb.offsetParent === null) continue;
+      const nm = nb.getAttribute('href').match(ENTITY_LINK_RE);
+      if (nm) return { kind: nm[1].toLowerCase(), id: nm[2] };
+    }
+    // Si ninguno era visible, usar el primero que matchee igualmente.
+    for (const nb of navButtons) {
+      const nm = nb.getAttribute('href').match(ENTITY_LINK_RE);
+      if (nm) return { kind: nm[1].toLowerCase(), id: nm[2] };
+    }
+
+    // 5) Drawer(s) visibles. Probamos varios data-test comunes y cualquier
     //    elemento con role=dialog.
     const drawerSelectors = [
       '[data-test="detailsDrawer"]',
@@ -165,7 +182,7 @@
       }
     }
 
-    // 5) Último entity detectado en un drawer reciente (≤ 60 s).
+    // 6) Último entity detectado en un drawer reciente (≤ 60 s).
     if (_lastPreviewEntity && Date.now() - _lastPreviewEntity.at < 60 * 1000) {
       return { kind: _lastPreviewEntity.kind, id: _lastPreviewEntity.id };
     }
@@ -195,6 +212,18 @@
   // Versión del detector que sólo usa DOM (para el observer, sin caer en el
   // fallback de la propia caché).
   function detectCurrentEntityFromDOMOnly() {
+    // Nav-button de la preview: el más confiable.
+    const navButtons = document.querySelectorAll('a[data-test="nav-button"][href]');
+    for (const nb of navButtons) {
+      if (nb.offsetParent === null) continue;
+      const nm = nb.getAttribute('href').match(ENTITY_LINK_RE);
+      if (nm) return { kind: nm[1].toLowerCase(), id: nm[2] };
+    }
+    for (const nb of navButtons) {
+      const nm = nb.getAttribute('href').match(ENTITY_LINK_RE);
+      if (nm) return { kind: nm[1].toLowerCase(), id: nm[2] };
+    }
+
     const drawerSelectors = [
       '[data-test="detailsDrawer"]',
       '[data-test*="Drawer"]',

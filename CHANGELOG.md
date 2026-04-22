@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.4 — 2026-04-22
+
+- **Preview de deals/leads finalmente detectada**: la detección ahora busca `a[data-test="nav-button"]` (el botón "Ábrelo en una pestaña nueva" que Pipedrive renderiza dentro de cualquier modal de preview). Es más confiable que intentar identificar el drawer por data-test, que Pipedrive cambia seguido. Aplica al mismo observer que sirve de fallback.
+
 ## 1.1.3 — 2026-04-22
 
 - **Adjuntos del timeline**: las imágenes ya no se intentan cargar inline (el approach con URL S3 firmada no era confiable). Ahora, como el resto de archivos, el click abre el deal directamente en Pipedrive.
