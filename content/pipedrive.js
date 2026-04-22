@@ -190,6 +190,43 @@
     return null;
   }
 
+  const KIND_LABEL = { deal: 'Deal', person: 'Persona', organization: 'Organización', leads: 'Lead' };
+  const KIND_ICON = { deal: '💼', person: '👤', organization: '🏢', leads: '🎯' };
+
+  // Pinta (o esconde) el chip que indica si la nota automática va a ir a
+  // Pipedrive al enviar. Se lee en vivo cada vez, no cacheamos.
+  async function renderEntityChip(modal) {
+    const chip = modal.querySelector('#whatpipe-entity-chip');
+    if (!chip) return;
+
+    const { logSentAsNote = true, pipedriveApiToken } = await new Promise((res) =>
+      chrome.storage.local.get(['logSentAsNote', 'pipedriveApiToken'], res)
+    );
+
+    if (!pipedriveApiToken) {
+      chip.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 10px;margin-bottom:12px;border-radius:8px;font-size:12.5px;background:#f1f5f9;color:#64748b;border:1px solid #e2e8f0;';
+      chip.textContent = 'ℹ️ Sin token de Pipedrive — no se registrará nota al enviar.';
+      return;
+    }
+    if (logSentAsNote === false) {
+      chip.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 10px;margin-bottom:12px;border-radius:8px;font-size:12.5px;background:#f1f5f9;color:#64748b;border:1px solid #e2e8f0;';
+      chip.textContent = 'ℹ️ Registro de nota desactivado en Opciones.';
+      return;
+    }
+
+    const entity = detectCurrentEntity();
+    if (entity) {
+      const label = KIND_LABEL[entity.kind] || entity.kind;
+      const icon = KIND_ICON[entity.kind] || '📌';
+      const idShort = String(entity.id).length > 10 ? String(entity.id).slice(0, 8) + '…' : entity.id;
+      chip.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 10px;margin-bottom:12px;border-radius:8px;font-size:12.5px;background:#dcfce7;color:#166534;border:1px solid #86efac;font-weight:600;';
+      chip.textContent = `${icon} ${label} #${idShort} detectado — se creará nota en Pipedrive al enviar`;
+    } else {
+      chip.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 10px;margin-bottom:12px;border-radius:8px;font-size:12.5px;background:#fef3c7;color:#92400e;border:1px solid #fde68a;';
+      chip.textContent = '⚠️ No pude detectar la entidad de Pipedrive — no se creará nota. Abrí un deal/lead/persona (o su preview) para que lo registre.';
+    }
+  }
+
   // Observer global: cada vez que aparece un drawer/modal con un link a una
   // entity, cacheamos esa entity. Sirve de fallback cuando, en el momento del
   // envío, el DOM del drawer cambió y ya no tiene el link a la vista.
@@ -600,6 +637,8 @@
           </div>
 
           <div class="whatpipe-modal-body">
+            <div id="whatpipe-entity-chip" class="whatpipe-entity-chip" style="display:none;"></div>
+
             <div class="whatpipe-form-group">
               <label>Número de teléfono (WhatsApp)</label>
               <div class="whatpipe-number-row">
@@ -704,6 +743,18 @@
 
     // Enrich from Pipedrive API if configured — overrides DOM guesses.
     enrichFromPipedriveAPI(modal);
+
+    // Entity chip: mostrar si detectamos deal/lead/persona/org para la nota.
+    renderEntityChip(modal);
+    // Refrescar periódicamente mientras el modal está abierto — la preview
+    // puede abrirse o cambiar después de abrir el modal.
+    const entityChipInterval = setInterval(() => {
+      if (!document.body.contains(modal)) {
+        clearInterval(entityChipInterval);
+        return;
+      }
+      renderEntityChip(modal);
+    }, 1500);
 
     // Save-as-template button
     modal.querySelector('#whatpipe-save-tpl').addEventListener('click', () => saveCurrentAsTemplate(modal));

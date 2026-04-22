@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.0 — 2026-04-22
+
+- **Feedback visual de detección**: al abrir el modal de envío desde Pipedrive aparece un chip que dice qué entidad se detectó (`💼 Deal #31190`, `🎯 Lead #abc-123…`, etc.) y confirma que se creará la nota al enviar. Si no se pudo detectar, muestra aviso en amarillo. Si el token de Pipedrive no está configurado o el toggle de registro está apagado, avisa con chip gris. El chip se refresca cada 1.5 s mientras el modal está abierto, así que si abrís un preview después, se actualiza solo.
+
 ## 1.1.4 — 2026-04-22
 
 - **Preview de deals/leads finalmente detectada**: la detección ahora busca `a[data-test="nav-button"]` (el botón "Ábrelo en una pestaña nueva" que Pipedrive renderiza dentro de cualquier modal de preview). Es más confiable que intentar identificar el drawer por data-test, que Pipedrive cambia seguido. Aplica al mismo observer que sirve de fallback.
