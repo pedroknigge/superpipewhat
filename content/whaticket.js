@@ -1288,15 +1288,48 @@
 
     if (type === "file") {
       const name = obj.name || obj.file_name || "archivo";
-      const url = obj.url || obj.remote_url || null;
-      if (url) {
-        body.appendChild($("a", {
+      const fileId = obj.id || obj.file_id || null;
+      const fallbackUrl = obj.url || obj.remote_url || null;
+
+      if (fileId || fallbackUrl) {
+        const link = $("a", {
           class: "pipewhat-flow-file",
-          href: url,
+          href: fallbackUrl || "#",
           target: "_blank",
           rel: "noopener",
           text: name + " ↗"
-        }));
+        });
+        // La URL `obj.url` requiere header `x-api-token`, así que un click
+        // normal la abre sin auth y devuelve 401. Interceptamos, pedimos al
+        // service worker la URL firmada de /files/:id y la abrimos.
+        if (fileId) {
+          link.addEventListener("click", async (e) => {
+            e.preventDefault();
+            const original = link.textContent;
+            link.textContent = "Abriendo…";
+            try {
+              const resp = await chrome.runtime.sendMessage({ action: "getFileDownloadUrl", fileId });
+              if (resp && resp.success && resp.data) {
+                window.open(resp.data, "_blank", "noopener");
+              } else if (fallbackUrl) {
+                window.open(fallbackUrl, "_blank", "noopener");
+              } else {
+                link.textContent = "Error al abrir";
+                setTimeout(() => { link.textContent = original; }, 2000);
+                return;
+              }
+            } catch (err) {
+              if (fallbackUrl) window.open(fallbackUrl, "_blank", "noopener");
+              else {
+                link.textContent = "Error";
+                setTimeout(() => { link.textContent = original; }, 2000);
+                return;
+              }
+            }
+            link.textContent = original;
+          });
+        }
+        body.appendChild(link);
       } else {
         body.appendChild(document.createTextNode(name));
       }

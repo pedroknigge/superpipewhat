@@ -95,6 +95,33 @@
     else stopInlineWatcher();
   }
 
+  // Detect the entity whose context the user is currently viewing. Handles
+  // both full pages (/deal/123) and the preview drawer (URL stays on the
+  // pipeline/list view, but [data-test="detailsDrawer"] contains a link back
+  // to the entity's own page).
+  function detectCurrentEntity() {
+    const m = location.pathname.match(/\/(deal|person|leads|organization)\/([\w-]+)/);
+    if (m) return { kind: m[1], id: m[2] };
+
+    const drawer = document.querySelector('[data-test="detailsDrawer"]');
+    if (drawer) {
+      const link = drawer.querySelector(
+        'a[href*="/deal/"], a[href*="/person/"], a[href*="/leads/"], a[href*="/organization/"]'
+      );
+      if (link) {
+        const dm = link.getAttribute('href').match(/\/(deal|person|leads|organization)\/([\w-]+)/);
+        if (dm) return { kind: dm[1], id: dm[2] };
+      }
+      const inner = drawer.querySelector('[data-id]');
+      const rawId = drawer.getAttribute('data-id') || (inner && inner.getAttribute('data-id'));
+      if (rawId && /^\d+$/.test(rawId)) {
+        const pk = location.pathname.match(/\/(deal|person|lead|organization)s?\b/);
+        if (pk) return { kind: pk[1] === 'lead' ? 'leads' : pk[1], id: rawId };
+      }
+    }
+    return null;
+  }
+
   // Detect selected entities (deals/persons/leads/organizations) on Pipedrive
   // list views. Pipedrive varies its DOM, so we use multiple strategies and
   // always require at least 2 selected rows to show the mass button.
@@ -980,7 +1007,9 @@
           number: number,
           body: body,
           connectionId: connectionId,
-          mediaUrl: modal._currentMediaUrl || ''
+          mediaUrl: modal._currentMediaUrl || '',
+          pipedriveEntity: detectCurrentEntity(),
+          pageUrl: location.href
         });
 
         if (response.success) {
@@ -1304,7 +1333,8 @@
             number: num,
             body,
             connectionId,
-            mediaUrl: tpl.mediaUrl || ''
+            mediaUrl: tpl.mediaUrl || '',
+            pipedriveEntity: (r.kind && r.id) ? { kind: r.kind, id: r.id } : null
           });
           if (resp && resp.success) {
             ok++;

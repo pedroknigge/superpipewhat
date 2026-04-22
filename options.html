@@ -296,6 +296,26 @@
 
       <div class="card">
         <div class="card-header">
+          <h2>📝 Registro en Pipedrive</h2>
+          <p>Cuando envíes un WhatsApp desde un deal, persona, lead u organización de Pipedrive, crear automáticamente una nota con el contenido del mensaje.</p>
+        </div>
+        <div class="card-body">
+          <div class="field">
+            <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+              <input type="checkbox" id="logSentAsNote" style="width:auto;">
+              <span>Registrar cada envío como nota en la entidad de Pipedrive</span>
+            </label>
+            <div class="hint">Requiere token de Pipedrive configurado. Funciona también con deals abiertos en preview. Si la entidad no se detecta, el envío sigue pero no se crea nota.</div>
+          </div>
+        </div>
+        <div class="card-footer">
+          <button class="btn" id="saveLogSentAsNoteBtn" type="button">Guardar cambios</button>
+          <span class="inline-status" id="logSentAsNoteStatus"></span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
           <h2>🎛️ Modo del botón</h2>
           <p>Elegí cómo aparece la extensión dentro de Pipedrive.</p>
         </div>

@@ -356,6 +356,17 @@ async function createActivity({ dealId, personId, subject, type, dueDate, dueTim
   return data;
 }
 
+// GET /files/:id devuelve un objeto con `url` pre-firmada (S3) que no requiere
+// header de auth. Así el content script puede abrir adjuntos sin pasar el
+// token por URL ni recibir 401.
+async function getFileDownloadUrl(fileId) {
+  if (!fileId) throw new Error("Falta fileId");
+  const data = await pdFetch(`files/${encodeURIComponent(fileId)}`);
+  const signed = data && (data.url || data.remote_url);
+  if (!signed) throw new Error("Pipedrive no devolvió URL para este archivo");
+  return signed;
+}
+
 async function lookupByPhone(phone) {
   const search = await searchPersonByPhone(phone);
   if (!search.matched) return { matched: false };
@@ -370,7 +381,7 @@ async function lookupByPhone(phone) {
 // ============================================================
 const WA_API_BASE = "https://api.whaticket.com/api/v1";
 
-async function sendWhaticketMessage({ number, body, connectionId, mediaUrl }) {
+async function sendWhaticketMessage({ number, body, connectionId, mediaUrl, pipedriveEntity, pageUrl }) {
   const { whatpipeToken, defaultConnectionId } = await chrome.storage.local.get([
     "whatpipeToken",
     "defaultConnectionId"
@@ -429,7 +440,91 @@ async function sendWhaticketMessage({ number, body, connectionId, mediaUrl }) {
   }
 
   const result = await response.json();
+
+  // Best-effort: dejar registro del envío en Pipedrive como nota. Fallar acá
+  // no debe revertir el envío — el mensaje ya salió.
+  logSentAsPipedriveNote({
+    number: cleanNumber,
+    body: messageObj.body,
+    mediaUrl: messageObj.mediaUrl,
+    connectionId: connId,
+    entity: pipedriveEntity,
+    pageUrl
+  }).catch((err) => console.debug("[SuperPipeWhat] no pude crear la nota:", err.message));
+
   return { success: true, result };
+}
+
+// Cache de conexiones Whaticket para resolver nombres al loggear la nota.
+let waConnectionsCache = null;
+async function getConnectionNameCached(id) {
+  if (!id) return null;
+  const now = Date.now();
+  if (!waConnectionsCache || now - waConnectionsCache.at > 5 * 60 * 1000) {
+    try {
+      const list = await getWhaticketConnections();
+      waConnectionsCache = { at: now, list: Array.isArray(list) ? list : [] };
+    } catch {
+      waConnectionsCache = { at: now, list: [] };
+    }
+  }
+  const hit = waConnectionsCache.list.find((c) => String(c.id) === String(id));
+  return hit ? hit.name : null;
+}
+
+function buildSentNoteBody({ number, body, mediaUrl, connectionName }) {
+  const now = new Date();
+  const pad = (n) => String(n).padStart(2, "0");
+  const stamp = `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  const lines = [];
+  lines.push(`📱 WhatsApp enviado vía Whaticket — ${stamp}`);
+  lines.push("");
+  lines.push(`A: +${number}`);
+  if (connectionName) lines.push(`Conexión: ${connectionName}`);
+  lines.push("");
+  lines.push(body || "(mensaje vacío)");
+  if (mediaUrl) {
+    lines.push("");
+    lines.push(`📎 ${mediaUrl}`);
+  }
+  return lines.join("\n");
+}
+
+async function logSentAsPipedriveNote({ number, body, mediaUrl, connectionId, entity, pageUrl }) {
+  const { logSentAsNote = true, pipedriveApiToken, pipedriveCompany } = await chrome.storage.local.get([
+    "logSentAsNote",
+    "pipedriveApiToken",
+    "pipedriveCompany"
+  ]);
+  if (logSentAsNote === false) return;
+  if (!pipedriveApiToken || !pipedriveCompany) return;
+
+  // Resolve entity: prefer the one the content script detected (handles
+  // preview drawer); otherwise try parsing the pageUrl.
+  let resolved = entity;
+  if (!resolved && pageUrl) {
+    try {
+      const u = new URL(pageUrl);
+      const m = u.pathname.match(/\/(deal|person|leads|organization)\/([\w-]+)/);
+      if (m) resolved = { kind: m[1], id: m[2] };
+    } catch {}
+  }
+  if (!resolved || !resolved.kind || !resolved.id) return;
+
+  const connectionName = await getConnectionNameCached(connectionId);
+  const content = buildSentNoteBody({ number, body, mediaUrl, connectionName });
+
+  const notePayload = { content };
+  if (resolved.kind === "deal") notePayload.deal_id = Number(resolved.id);
+  else if (resolved.kind === "person") notePayload.person_id = Number(resolved.id);
+  else if (resolved.kind === "organization") notePayload.org_id = Number(resolved.id);
+  else if (resolved.kind === "leads") notePayload.lead_id = String(resolved.id);
+  else return;
+
+  await pdFetch("notes", { method: "POST", body: notePayload });
+
+  // Invalidar flow cache del deal para que el timeline del panel refleje la nota.
+  if (resolved.kind === "deal") invalidateDealRelated(resolved.id, null);
 }
 
 async function getWhaticketConnections() {
@@ -693,6 +788,12 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   }
   if (msg.action === "listExtraHosts") {
     chrome.storage.local.get("extraHosts", (s) => sendResponse({ success: true, data: s.extraHosts || [] }));
+    return true;
+  }
+  if (msg.action === "getFileDownloadUrl") {
+    getFileDownloadUrl(msg.fileId)
+      .then((url) => sendResponse({ success: true, data: url }))
+      .catch((err) => sendResponse({ success: false, error: err.message }));
     return true;
   }
 

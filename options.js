@@ -42,7 +42,7 @@ function initTabs() {
 async function loadAll() {
   const s = await chrome.storage.local.get([
     'pipedriveApiToken', 'pipedriveCompany', 'defaultCountryCode', 'smartBccEmail',
-    'whatpipeToken', 'defaultConnectionId', 'senderCompany', 'buttonMode'
+    'whatpipeToken', 'defaultConnectionId', 'senderCompany', 'buttonMode', 'logSentAsNote'
   ]);
   document.getElementById('pipedriveApiToken').value = s.pipedriveApiToken || '';
   document.getElementById('pipedriveCompany').value = s.pipedriveCompany || '';
@@ -52,6 +52,7 @@ async function loadAll() {
   document.getElementById('defaultConnection').value = s.defaultConnectionId || '';
   document.getElementById('senderCompany').value = s.senderCompany || '';
   document.getElementById('buttonMode').value = s.buttonMode === 'inline' ? 'inline' : 'floating';
+  document.getElementById('logSentAsNote').checked = s.logSentAsNote !== false;
 }
 
 // ============ PIPEDRIVE tab handlers ============
@@ -163,6 +164,12 @@ async function saveButtonMode() {
   const mode = document.getElementById('buttonMode').value === 'inline' ? 'inline' : 'floating';
   await chrome.storage.local.set({ buttonMode: mode });
   flashInline('buttonModeStatus', '✅ Guardado', 'success');
+}
+
+async function saveLogSentAsNote() {
+  const checked = !!document.getElementById('logSentAsNote').checked;
+  await chrome.storage.local.set({ logSentAsNote: checked });
+  flashInline('logSentAsNoteStatus', '✅ Guardado', 'success');
 }
 
 async function testConnection() {
@@ -386,6 +393,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('loadConnectionsBtn').addEventListener('click', loadConnections);
   document.getElementById('saveSenderCompanyBtn').addEventListener('click', saveSenderCompany);
   document.getElementById('saveButtonModeBtn').addEventListener('click', saveButtonMode);
+  document.getElementById('saveLogSentAsNoteBtn').addEventListener('click', saveLogSentAsNote);
 
   // Templates tab
   document.getElementById('addTplBtn').addEventListener('click', addOrUpdateTemplate);
